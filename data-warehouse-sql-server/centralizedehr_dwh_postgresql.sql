@@ -20,8 +20,9 @@
 -- 0. EXTENSIONS
 -- ============================================================
 
--- Dùng cho hàm digest() khi hash CCCD/BHYT trong ETL mẫu.
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+-- Dùng cho hàm digest() khi hash CCCD/BHYT trong ETL mẫu
+ -- CREATE DATABASE centralizedehr_dwh;
+-- CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- ============================================================
 -- 1. CREATE SCHEMAS

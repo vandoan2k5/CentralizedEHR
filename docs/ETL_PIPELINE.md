@@ -34,7 +34,7 @@ Data Warehouse (dwh schema)
 
 ---
 
-# 3. Project Structure
+# 3. Pipeline Structure
 
 ```text
 etl/

@@ -1,35 +1,39 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { Heart } from 'lucide-react'
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { Heart } from "lucide-react";
 
 export default function Login() {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const { login, loading, role } = useAuth()
-  const navigate = useNavigate()
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const { login, loading } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError("");
     try {
-      const data = await login(username, password)
-      navigate(`/${data.role}`)
+      const data = await login(username, password);
+      if (data.must_change_password) {
+        navigate("/change-password");
+      } else {
+        navigate(`/${data.role}`);
+      }
     } catch {
-      setError('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.')
+      setError("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
     }
-  }
+  };
 
   const quickLogin = async (roleName) => {
     const creds = {
-      admin: 'admin@syt.gov.vn',
-      doctor: 'doctor@hospital.vn',
-      patient: 'patient@email.com',
-    }
-    setUsername(creds[roleName])
-    setPassword('password123')
-  }
+      admin: "admin@syt.gov.vn",
+      doctor: "doctor1@test.com",
+      patient: "patient1@test.com",
+    };
+    setUsername(creds[roleName]);
+    setPassword("123456");
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100">
@@ -44,7 +48,9 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Email / Tên đăng nhập</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Email / Mã BN / Tên đăng nhập
+            </label>
             <input
               type="text"
               value={username}
@@ -55,7 +61,9 @@ export default function Login() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Mật khẩu</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Mật khẩu
+            </label>
             <input
               type="password"
               value={password}
@@ -66,33 +74,61 @@ export default function Login() {
             />
           </div>
           {error && (
-            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">{error}</div>
+            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">
+              {error}
+            </div>
           )}
           <button
             type="submit"
             disabled={loading}
             className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
-            {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
           </button>
         </form>
 
-        <div className="mt-6 pt-6 border-t border-slate-200">
-          <p className="text-xs text-slate-400 text-center mb-3">Đăng nhập nhanh (Demo)</p>
+        {/* Register link */}
+        <div className="mt-5 text-center">
+          <p className="text-sm text-slate-500">
+            Chưa có tài khoản?{" "}
+            <Link
+              to="/register"
+              className="text-blue-600 hover:underline font-medium"
+            >
+              Đăng ký ngay
+            </Link>
+          </p>
+        </div>
+
+        <div className="mt-5 pt-5 border-t border-slate-200">
+          <p className="text-xs text-slate-400 text-center mb-3">
+            Đăng nhập nhanh (Demo)
+          </p>
           <div className="flex gap-2">
-            <button onClick={() => quickLogin('admin')} className="flex-1 py-2 text-xs bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors">
+            <button
+              onClick={() => quickLogin("admin")}
+              className="flex-1 py-2 text-xs bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
+            >
               Admin
             </button>
-            <button onClick={() => quickLogin('doctor')} className="flex-1 py-2 text-xs bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors">
+            <button
+              onClick={() => quickLogin("doctor")}
+              className="flex-1 py-2 text-xs bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
+            >
               Bác sĩ
             </button>
-            <button onClick={() => quickLogin('patient')} className="flex-1 py-2 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
+            <button
+              onClick={() => quickLogin("patient")}
+              className="flex-1 py-2 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+            >
               Bệnh nhân
             </button>
           </div>
-          <p className="text-xs text-slate-400 text-center mt-2">Mật khẩu mặc định: password123</p>
+          <p className="text-xs text-slate-400 text-center mt-2">
+            Mật khẩu mặc định: password123
+          </p>
         </div>
       </div>
     </div>
-  )
+  );
 }

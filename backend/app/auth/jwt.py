@@ -6,12 +6,12 @@ from app.config import get_settings
 settings = get_settings()
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
+def verify_password(plain: str, hashed: str) -> bool:
+    return bcrypt.checkpw(plain.encode(), hashed.encode())
 
 
-def get_password_hash(password: str) -> str:
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+def hash_password(plain: str) -> str:
+    return bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:

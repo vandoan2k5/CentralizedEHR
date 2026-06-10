@@ -2,6 +2,7 @@ import enum
 from datetime import datetime
 from sqlalchemy import Column, String, Text, DateTime, Enum, func
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 from app.database import Base
 import uuid
 
@@ -26,3 +27,6 @@ class Hospital(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)
+
+    # Relationship
+    doctors = relationship("Doctor", back_populates="hospital")

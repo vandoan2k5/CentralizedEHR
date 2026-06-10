@@ -11,7 +11,13 @@ from app.models.appointments import Appointment
 from app.models.consents import Consent
 from app.models.api_keys import ApiKey
 from app.models.master_data import MasterData
-
+from app.models.users import User
+from app.models.user_roles import UserRole
+from app.models.doctor_applications import DoctorApplication
+from app.models.admin_audit_logs import AdminAuditLog
+from app.models.messages import Message
+from app.models.shifts import Shift
+from app.models.notifications import Notification
 __all__ = [
     "Hospital",
     "Patient",
@@ -25,4 +31,10 @@ __all__ = [
     "Consent",
     "ApiKey",
     "MasterData",
+    "UserRole",
+    "DoctorApplication",
+    "AdminAuditLog",
+    "Message",
+    "Shift",
+    "Notification",
 ]

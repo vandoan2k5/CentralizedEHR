@@ -17,7 +17,7 @@ class MasterData(Base):
     __tablename__ = "master_data"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    data_type = Column(Enum(MasterDataType, name="master_data_type_enum"), nullable=False)
+    data_type = Column(String(20), nullable=False)    
     code = Column(String(50), nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(Text)

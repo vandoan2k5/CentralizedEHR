@@ -46,7 +46,7 @@ async def get_patient_appointments(db: AsyncSession, patient_id: uuid.UUID) -> l
             "id": str(appt.id),
             "appointment_date": appt.appointment_date,
             "reason": appt.reason,
-            "status": appt.status.value if appt.status else None,
+            "status": appt.status.value if hasattr(appt.status, 'value') else appt.status,
             "notes": appt.notes,
             "hospital": {"id": str(hospital.id), "name": hospital.name} if hospital else None,
             "doctor": {"id": str(doctor.id), "full_name": doctor.full_name, "specialty": doctor.specialty} if doctor else None,

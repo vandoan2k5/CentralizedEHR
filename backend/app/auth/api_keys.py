@@ -4,6 +4,7 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.api_keys import ApiKey
 import uuid
+from datetime import datetime, timezone
 
 
 def generate_api_key() -> tuple[str, str]:
@@ -49,7 +50,7 @@ async def revoke_api_key(db: AsyncSession, hospital_id: uuid.UUID) -> bool:
     stmt = (
         update(ApiKey)
         .where(ApiKey.hospital_id == hospital_id, ApiKey.deleted_at == None)
-        .values(is_active=False)
+        .values(is_active=False, revoked_at=datetime.now(timezone.utc))
     )
     result = await db.execute(stmt)
     await db.commit()

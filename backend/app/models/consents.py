@@ -20,7 +20,7 @@ class Consent(Base):
     doctor_id = Column(UUID(as_uuid=True), ForeignKey("doctors.id", ondelete="CASCADE"))
     hospital_id = Column(UUID(as_uuid=True), ForeignKey("hospitals.id", ondelete="CASCADE"))
 
-    status = Column(Enum(ConsentStatus, name="consent_status_enum"), default=ConsentStatus.ACTIVE)
+    status = Column(String(20), default="ACTIVE")    
     start_date = Column(DateTime(timezone=True), nullable=False)
     end_date = Column(DateTime(timezone=True), nullable=False)
     purpose = Column(String(500))

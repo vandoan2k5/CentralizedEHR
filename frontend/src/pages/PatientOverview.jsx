@@ -9,6 +9,7 @@ import {
 export default function PatientOverview() {
   const { profile, patientId } = useAuth();
   const [healthRecord, setHealthRecord] = useState(null);
+  const [appointments, setAppointments] = useState([]);
   const [vitals, setVitals] = useState(null);
   const [shareCount, setShareCount] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,6 +18,7 @@ export default function PatientOverview() {
     if (!patientId) return;
     Promise.all([
       patientApi.getHealthRecord(patientId).then(({ data }) => setHealthRecord(data)).catch(() => {}),
+      patientApi.getAppointments(patientId).then(({ data }) => setAppointments(data ?? [])).catch(() => {}),
       patientApi.getVitals(patientId).then(({ data }) => setVitals(data)).catch(() => {}),
       patientApi.getShareStats(patientId).then(({ data }) => setShareCount(data?.active_consents ?? 0)).catch(() => {}),
     ]).finally(() => setLoading(false));
@@ -24,8 +26,8 @@ export default function PatientOverview() {
 
   const fullName = profile?.full_name || "Người dùng";
   const insuranceCode = profile?.insurance_code || "";
-  const upcomingCount = healthRecord?.encounters?.filter(
-    (e) => new Date(e.visit_date) > new Date()
+  const upcomingCount = appointments.filter(
+    (a) => new Date(a.appointment_date) > new Date() && ["scheduled", "confirmed"].includes(a.status)
   ).length || 0;
   const encounterCount = healthRecord?.encounters?.length || 0;
   const rxCount = healthRecord?.encounters?.reduce((s, e) => s + (e.prescriptions?.length || 0), 0) || 0;
@@ -37,11 +39,12 @@ export default function PatientOverview() {
     { icon: Shield, label: "Đã chia sẻ", value: shareCount ?? "—", color: "amber" },
   ];
 
-  const vitalsData = vitals?.blood_pressure ? [
-    { label: "Huyết áp", value: vitals.blood_pressure || "120/80", unit: "mmHg", icon: Activity },
-    { label: "Nhịp tim", value: vitals.heart_rate || "72", unit: "bpm", icon: HeartPulse },
-    { label: "Nhiệt độ", value: vitals.temperature || "36.8", unit: "°C", icon: Thermometer },
-    { label: "Cân nặng", value: vitals.weight || "65", unit: "kg", icon: Weight },
+  const vitalsLatest = vitals?.latest ?? {};
+  const vitalsData = vitalsLatest?.blood_pressure ? [
+    { label: "Huyết áp", value: vitalsLatest.blood_pressure || "120/80", unit: "mmHg", icon: Activity },
+    { label: "Nhịp tim", value: vitalsLatest.heart_rate || "72", unit: "bpm", icon: HeartPulse },
+    { label: "Nhiệt độ", value: vitalsLatest.temperature || "36.8", unit: "°C", icon: Thermometer },
+    { label: "Cân nặng", value: vitalsLatest.weight || "65", unit: "kg", icon: Weight },
   ] : [];
 
   return (

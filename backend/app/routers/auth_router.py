@@ -63,16 +63,42 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
                 select(Patient).where(Patient.user_id == user.id)
             )
             patient = p_result.scalar_one_or_none()
+
+            if not patient:
+                p_result = await db.execute(
+                    select(Patient).where(
+                        Patient.user_id.is_(None),
+                        Patient.identity_number == user.email,
+                    )
+                )
+                patient = p_result.scalar_one_or_none()
+                if patient:
+                    patient.user_id = user.id
+                    await db.commit()
+
+            if not patient:
+                p_result = await db.execute(
+                    select(Patient).where(
+                        Patient.user_id.is_(None),
+                        Patient.full_name == user.full_name,
+                    )
+                )
+                patient = p_result.scalar_one_or_none()
+                if patient:
+                    patient.user_id = user.id
+                    await db.commit()
+
             if patient:
                 patient_id = str(patient.id)
 
+        token_patient_id = patient_id
         token = create_access_token(
-            data={"sub": user.email, "role": user.role, "user_id": str(user.id)},
+            data={"sub": user.email, "role": user.role, "user_id": str(user.id), "patient_id": patient_id, "full_name": user.full_name},
             expires_delta=timedelta(minutes=settings.JWT_EXPIRE_MINUTES),
         )
         return TokenResponse(access_token=token, role=user.role,
                             expires_in=settings.JWT_EXPIRE_MINUTES * 60,
-                            patient_id=patient_id,  # ✅ trả đúng patient_id
+                            patient_id=token_patient_id,
                             must_change_password=user.must_change_password)
 
     # Fallback mock — nằm NGOÀI if user
@@ -83,8 +109,9 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
         print(f"[LOGIN] verify_password={ok}")
         if ok:
             fake_user_id = mock.get("user_id") or "00000000-0000-0000-0000-000000000001"
+            mock_patient_id = mock.get("patient_id")
             token = create_access_token(
-                data={"sub": data.username, "role": mock["role"], "user_id": fake_user_id},
+                data={"sub": data.username, "role": mock["role"], "user_id": fake_user_id, "patient_id": mock_patient_id},
                 expires_delta=timedelta(minutes=settings.JWT_EXPIRE_MINUTES),
             )
             return TokenResponse(access_token=token, role=mock["role"],
@@ -387,8 +414,17 @@ async def get_user_profile(
     email = current_user.get("sub")
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
+
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        return {
+            "id": current_user.get("user_id") or "unknown",
+            "email": email,
+            "role": current_user.get("role") or "patient",
+            "full_name": current_user.get("full_name"),
+            "is_approved": True,
+            "is_active": True,
+            "is_mock": True,
+        }
 
     profile = {
         "id": str(user.id),
@@ -405,6 +441,39 @@ async def get_user_profile(
             select(Patient).where(Patient.user_id == user.id)
         )
         patient = p_result.scalar_one_or_none()
+
+        if not patient:
+            patient_id_from_jwt = current_user.get("patient_id")
+            if patient_id_from_jwt:
+                p_result = await db.execute(
+                    select(Patient).where(Patient.id == _uuid.UUID(patient_id_from_jwt))
+                )
+                patient = p_result.scalar_one_or_none()
+
+        if not patient:
+            p_result = await db.execute(
+                select(Patient).where(
+                    Patient.identity_number == user.email,
+                    Patient.user_id.is_(None),
+                )
+            )
+            patient = p_result.scalar_one_or_none()
+            if patient:
+                patient.user_id = user.id
+                await db.commit()
+
+        if not patient:
+            p_result = await db.execute(
+                select(Patient).where(
+                    Patient.full_name == user.full_name,
+                    Patient.user_id.is_(None),
+                )
+            )
+            patient = p_result.scalar_one_or_none()
+            if patient:
+                patient.user_id = user.id
+                await db.commit()
+
         if patient:
             profile["patient_id"] = str(patient.id)
             profile["insurance_code"] = patient.insurance_code

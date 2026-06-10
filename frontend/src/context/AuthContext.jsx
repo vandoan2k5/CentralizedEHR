@@ -27,11 +27,12 @@ export function AuthProvider({ children }) {
         localStorage.setItem('patientId', data.patient_id)
       }
       setUser({ username, role: data.role, patientId: data.patient_id })
+      await loadProfile()
       return data
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [loadProfile])
 
   const switchRole = useCallback(async (targetRole) => {
     const { data } = await authApi.switchRole(targetRole)
@@ -43,8 +44,9 @@ export function AuthProvider({ children }) {
       localStorage.removeItem('patientId')
     }
     setUser(prev => ({ ...prev, role: data.role, patientId: data.patient_id }))
+    await loadProfile()
     return data
-  }, [])
+  }, [loadProfile])
 
   const logout = useCallback(() => {
     localStorage.removeItem('token')

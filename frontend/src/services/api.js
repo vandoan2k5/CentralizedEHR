@@ -111,6 +111,11 @@ export const patientApi = {
   getBadgeCounts: (patientId) => api.get(`/patient/badge-counts/${patientId}`),
   getBilling: (patientId) => api.get(`/patient/my-billing/${patientId}`),
   getShareStats: (patientId) => api.get(`/patient/share-stats/${patientId}`),
+
+  // Messages
+  getConversations: () => api.get("/patient/conversations"),
+  getMessages: (conversationId) => api.get(`/patient/messages/${conversationId}`),
+  sendMessage: (data) => api.post("/patient/messages", data),
 };
 
 // ─── Admin ───────────────────────────────────────────────────────────────────

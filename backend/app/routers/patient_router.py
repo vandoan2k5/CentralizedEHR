@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from app.database import get_db
@@ -10,6 +11,7 @@ from app.services.appointment_service import (
 )
 from app.services.consent_service import create_consent, get_patient_consents, revoke_consent, check_active_consent
 from app.services.notification_service import get_notifications, get_unread_notification_count
+from app.services.message_service import get_conversations, get_messages, send_message, get_unread_message_count
 from app.schemas.schemas import (
     AppointmentCreate, AppointmentResponse,
     ConsentCreate, ConsentResponse,
@@ -22,6 +24,7 @@ from app.models.lab_results import LabResult
 from app.models.imaging_reports import ImagingReport
 from app.models.prescriptions import Prescription
 from app.models.appointments import Appointment
+from app.models.messages import Message
 import uuid
 from datetime import datetime, timezone
 
@@ -220,22 +223,41 @@ async def my_vitals(
         select(Encounter)
         .where(Encounter.patient_id == pid, Encounter.deleted_at.is_(None))
         .order_by(Encounter.visit_date.desc())
-        .limit(1)
+        .limit(20)
     )
-    enc = result.scalar_one_or_none()
-    if not enc:
-        return {}
+    encounters = result.scalars().all()
+    if not encounters:
+        return {"latest": {}, "history": []}
+
+    latest = None
+    for enc in encounters:
+        if any([enc.blood_pressure, enc.heart_rate, enc.temperature, enc.weight, enc.spo2, enc.respiratory_rate]):
+            latest = enc
+            break
+
+    history = []
+    for enc in encounters:
+        entry = {"recorded_at": enc.visit_date}
+        if enc.blood_pressure: entry["blood_pressure"] = enc.blood_pressure
+        if enc.heart_rate: entry["heart_rate"] = enc.heart_rate
+        if enc.temperature: entry["temperature"] = enc.temperature
+        if enc.weight: entry["weight"] = enc.weight
+        if enc.respiratory_rate: entry["respiratory_rate"] = enc.respiratory_rate
+        if enc.spo2: entry["spo2"] = enc.spo2
+        history.append(entry)
 
     return {
-        "blood_pressure": enc.blood_pressure or "120/80",
-        "heart_rate": enc.heart_rate or 72,
-        "temperature": enc.temperature or "36.8",
-        "weight": enc.weight or "65",
-        "respiratory_rate": enc.respiratory_rate,
-        "spo2": enc.spo2,
-        "recorded_at": enc.visit_date,
+        "latest": {
+            "blood_pressure": latest.blood_pressure if latest else None,
+            "heart_rate": latest.heart_rate if latest else None,
+            "temperature": latest.temperature if latest else None,
+            "weight": latest.weight if latest else None,
+            "respiratory_rate": latest.respiratory_rate if latest else None,
+            "spo2": latest.spo2 if latest else None,
+            "recorded_at": latest.visit_date if latest else None,
+        } if latest else {},
+        "history": history,
     }
-
 
 @router.get("/badge-counts/{patient_id}")
 async def badge_counts(
@@ -273,11 +295,53 @@ async def badge_counts(
     )
     active_rx = rx_result.scalar() or 0
 
+    # Unread messages
+    msg_unread = await get_unread_message_count(db, uuid.UUID(user_id)) if user_id else 0
+
     return {
         "appointments": upcoming_appts,
         "prescriptions": active_rx,
         "notifications": unread_notif,
+        "messages": msg_unread,
     }
+
+
+class SendMessageRequest(BaseModel):
+    receiver_id: str
+    content: str = Field(min_length=1)
+
+
+@router.get("/conversations")
+async def patient_conversations(
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(require_role("patient")),
+):
+    user_id = current_user.get("user_id")
+    conversations = await get_conversations(db, uuid.UUID(user_id))
+    unread = await get_unread_message_count(db, uuid.UUID(user_id))
+    return {"success": True, "data": conversations, "unread": unread}
+
+
+@router.get("/messages/{conversation_id}")
+async def patient_conversation_messages(
+    conversation_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(require_role("patient")),
+):
+    user_id = current_user.get("user_id")
+    msgs = await get_messages(db, conversation_id, uuid.UUID(user_id))
+    return {"success": True, "data": msgs}
+
+
+@router.post("/messages")
+async def patient_send_message(
+    data: SendMessageRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(require_role("patient")),
+):
+    user_id = current_user.get("user_id")
+    result = await send_message(db, uuid.UUID(user_id), uuid.UUID(data.receiver_id), data.content)
+    return {"success": True, "data": result}
 
 
 @router.get("/my-billing/{patient_id}")

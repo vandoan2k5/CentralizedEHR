@@ -3,8 +3,8 @@ import { useAuth } from "../context/AuthContext";
 import { patientApi } from "../services/api";
 import {
   LayoutDashboard, HeartPulse, Calendar, FileText, Pill,
-  FlaskConical, Scan, Receipt, Share2, Bell, Settings,
-  Stethoscope, LogOut, Clock, ChevronDown, User,
+  FlaskConical, Scan, Share2, Bell, Settings,
+  Stethoscope, LogOut, Clock, ChevronDown, User, MessageCircle,
 } from "lucide-react";
 
 const NAV_GROUPS = [
@@ -28,7 +28,7 @@ const NAV_GROUPS = [
   {
     label: "TIỆN ÍCH",
     items: [
-      { id: "billing", label: "Hóa đơn & Thanh toán", icon: Receipt },
+      { id: "messages", label: "Tin nhắn", icon: MessageCircle, badge: "messages" },
       { id: "share-records", label: "Chia sẻ hồ sơ", icon: Share2 },
       { id: "notifications", label: "Thông báo", icon: Bell, badge: "notif" },
     ],
@@ -44,7 +44,7 @@ const BOTTOM_ITEMS = [
 export default function PatientSidebar({ activeTab, onTabChange, onLogout }) {
   const { profile, patientId } = useAuth();
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
-  const [badgeCounts, setBadgeCounts] = useState({ appointments: 0, prescriptions: 0, notifications: 0 });
+  const [badgeCounts, setBadgeCounts] = useState({ appointments: 0, prescriptions: 0, notifications: 0, messages: 0 });
 
   useEffect(() => {
     if (!patientId) return;
@@ -79,6 +79,7 @@ export default function PatientSidebar({ activeTab, onTabChange, onLogout }) {
     if (badgeType === "upcoming") count = badgeCounts.appointments;
     else if (badgeType === "active") count = badgeCounts.prescriptions;
     else if (badgeType === "notif") count = badgeCounts.notifications;
+    else if (badgeType === "messages") count = badgeCounts.messages;
 
     if (count <= 0) return null;
 

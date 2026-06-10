@@ -25,10 +25,11 @@ import PatientMedicalRecords from "./pages/PatientMedicalRecords";
 import PatientPrescriptions from "./pages/PatientPrescriptions";
 import PatientLabResults from "./pages/PatientLabResults";
 import PatientImaging from "./pages/PatientImaging";
-import PatientBilling from "./pages/PatientBilling";
+
 import PatientShareRecords from "./pages/PatientShareRecords";
 import PatientNotifications from "./pages/PatientNotifications";
 import PatientSettings from "./pages/PatientSettings";
+import PatientMessages from "./pages/PatientMessages";
 import PatientDoctorApplication from "./pages/PatientDoctorApplication";
 import DoctorOverview from "./pages/DoctorOverview";
 import DoctorStats from "./pages/DoctorStats";
@@ -204,8 +205,8 @@ function PatientLayout() {
         return <PatientLabResults />;
       case "imaging":
         return <PatientImaging />;
-      case "billing":
-        return <PatientBilling />;
+      case "messages":
+        return <PatientMessages />;
       case "share-records":
         return <PatientShareRecords />;
       case "notifications":

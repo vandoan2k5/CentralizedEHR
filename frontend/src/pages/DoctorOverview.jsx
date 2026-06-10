@@ -67,7 +67,7 @@ export default function DoctorOverview() {
   const waitingCount = schedule.filter((s) => s.status === 'waiting').length
 
   const QUICK_ACTIONS = [
-    { title: 'Khám bệnh mới', subtitle: 'Tiếp nhận BN', bg: '#185fa5', icon: Stethoscope, path: '/doctor/patients' },
+    { title: 'Khám bệnh mới', subtitle: 'Khám bệnh', bg: '#185fa5', icon: Stethoscope, path: '/doctor/exam' },
     { title: 'Tiếp nhận BN', subtitle: 'Đăng ký mới', bg: '#059669', icon: UserPlus, path: '/doctor/intake' },
     { title: 'Hồ sơ bệnh án', subtitle: 'Tra cứu HSBA', bg: '#d97706', icon: FileText, path: '/doctor/records' },
     { title: 'Kê đơn thuốc', subtitle: 'Thuốc điều trị', bg: '#dc2626', icon: Pill, path: '/doctor/prescriptions' },
@@ -76,7 +76,7 @@ export default function DoctorOverview() {
   return (
     <div className="pt-5 pr-7 pl-7 overflow-y-auto h-full bg-[#f8f9fc]">
       <div className="mb-5">
-        <h1 className="text-xl font-bold text-gray-800">Chào mừng, BS. {displayName}</h1>
+        <h1 className="text-xl font-bold text-gray-800">Chào mừng, {displayName}</h1>
         <p className="text-sm text-slate-500 mt-0.5">{dateStr}</p>
       </div>
 

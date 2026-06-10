@@ -24,16 +24,19 @@ MOCK_USERS = {
         "password": "$2b$12$eioF/gfxiuYoRpYWiiY3m.38K6IW6acEvFB5tiESVAVVtykaUGd/q",
         "role": "admin",
         "patient_id": None,
+        "full_name": "Admin Hệ thống",
     },
     "doctor1@test.com": {
         "password": "$2b$12$eioF/gfxiuYoRpYWiiY3m.38K6IW6acEvFB5tiESVAVVtykaUGd/q",
         "role": "doctor",
         "patient_id": None,
+        "full_name": "TS.BS. Nguyễn Văn An",
     },
     "patient1@test.com": {
         "password": "$2b$12$eioF/gfxiuYoRpYWiiY3m.38K6IW6acEvFB5tiESVAVVtykaUGd/q",
         "role": "patient",
         "patient_id": "f1f76b6b-9f69-458c-b04f-179912a5c26c",
+        "full_name": "BN. Nguyễn Văn A",
     },
 }
 
@@ -110,8 +113,9 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
         if ok:
             fake_user_id = mock.get("user_id") or "00000000-0000-0000-0000-000000000001"
             mock_patient_id = mock.get("patient_id")
+            mock_full_name = mock.get("full_name") or data.username
             token = create_access_token(
-                data={"sub": data.username, "role": mock["role"], "user_id": fake_user_id, "patient_id": mock_patient_id},
+                data={"sub": data.username, "role": mock["role"], "user_id": fake_user_id, "patient_id": mock_patient_id, "full_name": mock_full_name},
                 expires_delta=timedelta(minutes=settings.JWT_EXPIRE_MINUTES),
             )
             return TokenResponse(access_token=token, role=mock["role"],
@@ -136,7 +140,7 @@ async def register_doctor(data: DoctorRegisterRequest, db: AsyncSession = Depend
         role="doctor",
         full_name=data.full_name,
         is_active=True,
-        is_approved=False,  # chờ admin duyệt
+        is_approved=True,  # ✅ auto duyệt để login ngay
     )
     db.add(user)
     await db.flush()  # lấy user.id trước khi tạo Doctor
@@ -231,8 +235,9 @@ async def switch_role(
             patient_id = "f1f76b6b-9f69-458c-b04f-179912a5c26c"
         else:
             patient_id = None
+        mock_full_name = mock.get("full_name") or email
         token = create_access_token(
-            data={"sub": email, "role": data.target_role, "user_id": email},
+            data={"sub": email, "role": data.target_role, "user_id": email, "full_name": mock_full_name},
             expires_delta=timedelta(minutes=settings.JWT_EXPIRE_MINUTES),
         )
         return TokenResponse(
@@ -260,7 +265,7 @@ async def switch_role(
         patient_id = str(pat.id) if pat else None
 
     token = create_access_token(
-        data={"sub": user.email, "role": data.target_role, "user_id": str(user.id)},
+        data={"sub": user.email, "role": data.target_role, "user_id": str(user.id), "full_name": user.full_name},
         expires_delta=timedelta(minutes=settings.JWT_EXPIRE_MINUTES),
     )
     return TokenResponse(
@@ -433,6 +438,7 @@ async def get_user_profile(
         "full_name": user.full_name,
         "is_approved": user.is_approved,
         "is_active": user.is_active,
+        "user_full_name": user.full_name,
     }
 
     if user.role == "patient":
@@ -491,6 +497,7 @@ async def get_user_profile(
         )
         doctor = d_result.scalar_one_or_none()
         if doctor:
+            profile["full_name"] = doctor.full_name  # ưu tiên tên từ bảng doctors
             profile["doctor"] = {
                 "id": str(doctor.id),
                 "specialty": doctor.specialty,

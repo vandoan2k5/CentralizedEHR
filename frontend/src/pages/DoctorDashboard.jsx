@@ -863,7 +863,7 @@ function ProfileSection() {
   return (
     <div className="bg-white rounded-xl border overflow-hidden">
       <div className="p-4 border-b bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-        <h3 className="font-semibold text-lg">BS. {profile.full_name || profile.name}</h3>
+        <h3 className="font-semibold text-lg">{profile.full_name || profile.name}</h3>
         <p className="text-sm text-blue-100">{profile.specialty || profile.specialization || '—'}</p>
       </div>
       <div className="p-4 space-y-3 text-sm">

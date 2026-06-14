@@ -65,7 +65,7 @@ Khối này nhận lượng lớn dữ liệu Insert/Update (High write-throughp
 
 ### Biểu đồ 1: Phân hệ Tích hợp HIS Bệnh viện (Integration/API Subsystem)
 Biểu đồ này mô tả các giao tiếp Machine-to-Machine thông qua API giữa hệ thống cục bộ của các bệnh viện và trung tâm dữ liệu thành phố.
-![Biểu đồ 1](../assets/bd01.png)
+![Biểu đồ 1](../../assets/images/bd01.png)
 *   **Tác nhân (Actors):** 
     *   `Hệ thống HIS Bệnh viện` (Primary Actor - Tác nhân hệ thống).
 *   **Các Ca sử dụng (Use Cases) & Quan hệ:**
@@ -77,7 +77,7 @@ Biểu đồ này mô tả các giao tiếp Machine-to-Machine thông qua API gi
 
 ### Biểu đồ 2: Cổng thông tin Lâm sàng (Clinical Portal)
 Biểu đồ này tập trung vào các nghiệp vụ dành cho y bác sĩ khi họ thao tác trên Portal của Sở Y tế hoặc qua giao diện HIS đã tích hợp API tra cứu.
-![Biểu đồ 2](../assets/bd02.png)
+![Biểu đồ 2](../../assets/images/bd02.png)
 
 
 *   **Tác nhân (Actors):** 
@@ -95,7 +95,7 @@ Biểu đồ này tập trung vào các nghiệp vụ dành cho y bác sĩ khi h
 
 ### Biểu đồ 3: Ứng dụng dành cho Bệnh nhân (Patient Mobile App / Web Portal)
 Biểu đồ này hướng tới trải nghiệm của người dân trong việc chủ động quản lý sức khỏe cá nhân (PHR).
-![Biểu đồ 3](../assets/bd03.png)
+![Biểu đồ 3](../../assets/images/bd03.png)
 *   **Tác nhân (Actors):** 
     *   `Bệnh nhân / Người dân` (Patient).
     *   `Cổng thanh toán` (Payment Gateway - Secondary Actor).
@@ -113,7 +113,7 @@ Biểu đồ này hướng tới trải nghiệm của người dân trong việ
 
 ### Biểu đồ 4: Phân hệ Quản trị Hệ thống (Admin & Master Data Management)
 Biểu đồ này dành cho đội ngũ quản trị viên cấp cao tại Sở Y tế để duy trì hoạt động của toàn bộ mạng lưới.
-![Biểu đồ 4](../assets/bd04.png)
+![Biểu đồ 4](../../assets/images/bd04.png)
 *   **Tác nhân (Actors):** 
     *   `Quản trị viên Sở Y tế` (System Admin).
 *   **Các Ca sử dụng (Use Cases) & Quan hệ:**

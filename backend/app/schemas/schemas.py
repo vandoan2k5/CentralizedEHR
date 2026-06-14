@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 from datetime import date, datetime
 from uuid import UUID
 from typing import Optional
@@ -22,6 +22,7 @@ class PatientResponse(BaseModel):
     gender: Optional[str]
     phone_number: Optional[str]
     created_at: Optional[datetime]
+    last_visit_date: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
 
@@ -85,10 +86,49 @@ class MappingResponse(BaseModel):
 class EncounterCreate(BaseModel):
     patient_id: UUID
     doctor_id: UUID
+    hospital_id: Optional[UUID] = None
     visit_date: datetime
     icd10_code: Optional[str] = Field(default=None, max_length=20)
     symptoms: Optional[str] = None
     clinical_notes: Optional[str] = None
+    treatment_plan: Optional[str] = None
+    conclusion: Optional[str] = None
+
+
+class CompleteExamination(BaseModel):
+    patient_id: UUID
+    hospital_id: Optional[UUID] = None
+    visit_date: datetime = Field(default_factory=lambda: datetime.now())
+    icd10_code: Optional[str] = Field(default=None, max_length=20)
+    symptoms: Optional[str] = None
+    clinical_notes: Optional[str] = None
+    treatment_plan: Optional[str] = None
+    conclusion: Optional[str] = None
+    severity: Optional[str] = Field(default="normal", max_length=20)
+    exam_type: Optional[str] = Field(default="new", max_length=20)
+
+    # Vitals
+    blood_pressure: Optional[str] = None
+    heart_rate: Optional[int] = None
+    temperature: Optional[str] = None
+    respiratory_rate: Optional[int] = None
+    weight: Optional[str] = None
+    spo2: Optional[str] = None
+
+    prescriptions: list["PrescriptionCreate"] = []
+    lab_orders: list["LabOrderCreate"] = []
+    imaging_orders: list["ImagingOrderCreate"] = []
+
+
+class LabOrderCreate(BaseModel):
+    test_code: str = Field(max_length=50)
+    test_name: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class ImagingOrderCreate(BaseModel):
+    modality: str = Field(max_length=50)
+    notes: Optional[str] = None
 
 
 class EncounterResponse(BaseModel):
@@ -100,6 +140,16 @@ class EncounterResponse(BaseModel):
     icd10_code: Optional[str]
     symptoms: Optional[str]
     clinical_notes: Optional[str]
+    conclusion: Optional[str] = None
+    treatment_plan: Optional[str] = None
+    severity: Optional[str] = "normal"
+    exam_type: Optional[str] = "new"
+    blood_pressure: Optional[str] = None
+    heart_rate: Optional[int] = None
+    temperature: Optional[str] = None
+    respiratory_rate: Optional[int] = None
+    weight: Optional[str] = None
+    spo2: Optional[str] = None
     created_at: Optional[datetime]
 
     model_config = {"from_attributes": True}
@@ -158,7 +208,7 @@ class ImagingReportResponse(BaseModel):
 
 
 class PrescriptionCreate(BaseModel):
-    encounter_id: UUID
+    encounter_id: Optional[UUID] = None
     drug_code: str = Field(max_length=50)
     drug_name: str = Field(max_length=255)
     quantity: int
@@ -272,6 +322,7 @@ class TokenResponse(BaseModel):
     role: str
     expires_in: int
     patient_id: str | None = None
+    must_change_password: bool = False
 
 
 class DrugInteractionCheck(BaseModel):
@@ -301,3 +352,96 @@ class EncounterSyncRequest(BaseModel):
     lab_results: list[LabResultCreate] = []
     imaging_reports: list[ImagingReportCreate] = []
     prescriptions: list[PrescriptionCreate] = []
+
+
+class PatientUpdate(BaseModel):
+    """
+    Tất cả field đều Optional — chỉ gửi field muốn cập nhật (PATCH style).
+    """
+    full_name: Optional[str] = Field(default=None, max_length=255)
+    dob: Optional[date] = None
+    gender: Optional[str] = Field(default=None, max_length=10)
+    phone_number: Optional[str] = Field(default=None, max_length=20)
+    identity_number: Optional[str] = Field(default=None, max_length=20)
+    insurance_code: Optional[str] = Field(default=None, max_length=50)
+ 
+ 
+# Response chuẩn dùng chung toàn hệ thống
+class PaginatedResponse(BaseModel):
+    """Wrapper có pagination — dùng cho mọi list endpoint."""
+    success: bool = True
+    data: list
+    total: int
+    page: int
+    limit: int
+    total_pages: int
+ 
+ 
+class BaseResponse(BaseModel):
+    """Wrapper đơn giản cho single object hoặc action."""
+    success: bool = True
+    data: dict | None = None
+    message: str | None = None
+
+class DoctorRegisterRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8)
+    full_name: str = Field(max_length=255)
+    practicing_license: Optional[str] = Field(default=None, max_length=100)
+    specialty: Optional[str] = Field(default=None, max_length=255)
+ 
+ 
+class DoctorRegisterResponse(BaseModel):
+    id: UUID
+    email: str
+    full_name: Optional[str]
+    is_approved: bool
+    message: str
+
+
+class PatientRegisterRequest(BaseModel):
+    email: Optional[str] = Field(default=None, max_length=255)
+    password: str = Field(min_length=8)
+    full_name: str = Field(max_length=255)
+    identity_number: str = Field(max_length=20)
+    insurance_code: str = Field(max_length=50)
+    dob: date
+    gender: Optional[str] = Field(default=None, max_length=10)
+    phone_number: Optional[str] = Field(default=None, max_length=20)
+
+
+class PatientRegisterResponse(BaseModel):
+    id: UUID
+    email: str
+    full_name: str
+    patient_id: UUID
+    message: str
+
+
+class UserResponse(BaseModel):
+    id: UUID
+    email: str
+    role: str
+    full_name: Optional[str]
+    is_active: bool
+    is_approved: bool
+    created_at: Optional[datetime]
+ 
+    model_config = {"from_attributes": True}
+ 
+ 
+class DoctorWithUserResponse(BaseModel):
+    """Dùng cho admin xem danh sách bác sĩ kèm trạng thái tài khoản"""
+    id: UUID
+    full_name: str
+    specialty: Optional[str]
+    practicing_license: str
+    hospital_id: Optional[UUID]
+    hospital_name: Optional[str] = None  # join từ Hospital
+    user_id: Optional[UUID]
+    email: Optional[str] = None          # từ User
+    is_active: Optional[bool] = None
+    is_approved: Optional[bool] = None
+    created_at: Optional[datetime]
+ 
+    model_config = {"from_attributes": True}

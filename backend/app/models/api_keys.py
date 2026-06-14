@@ -3,6 +3,7 @@ from datetime import datetime
 from sqlalchemy import Column, String, ForeignKey, DateTime, func, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from app.database import Base
+from sqlalchemy.orm import relationship
 
 
 class ApiKey(Base):
@@ -13,7 +14,9 @@ class ApiKey(Base):
     key_hash = Column(String(255), nullable=False)
     key_prefix = Column(String(50), nullable=False)
     is_active = Column(Boolean, default=True)
+    revoked_at = Column(DateTime(timezone=True), nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)
+    hospital = relationship("Hospital", backref="api_keys")

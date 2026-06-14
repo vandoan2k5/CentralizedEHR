@@ -29,7 +29,7 @@ backend/schema.sql
     OLTP schema: patients, hospitals, doctors, encounters, lab_results,
     imaging_reports, prescriptions, appointments, consents, master_data.
 
-data-warehouse-sql-server/centralizedehr_dwh_postgresql.sql
+database/dwh/centralizedehr_dwh_postgresql.sql
     PostgreSQL DWH schema: dwh dimensions, dwh facts, unknown rows, mart views.
 
 scripts/generate_mock_oltp_data.py
@@ -99,7 +99,7 @@ psql "$env:DATABASE_URL" -f backend\schema.sql
 Run the PostgreSQL Data Warehouse schema:
 
 ```powershell
-psql "$env:DATABASE_URL" -f data-warehouse-sql-server\centralizedehr_dwh_postgresql.sql
+psql "$env:DATABASE_URL" -f database/dwh\centralizedehr_dwh_postgresql.sql
 ```
 
 For Supabase local development, you can also run these SQL files from Supabase Studio SQL Editor or another PostgreSQL client connected to the local database.
@@ -323,7 +323,7 @@ pip install supabase
 
 # 2. Apply OLTP and DWH schemas
 psql "$env:DATABASE_URL" -f backend\schema.sql
-psql "$env:DATABASE_URL" -f data-warehouse-sql-server\centralizedehr_dwh_postgresql.sql
+psql "$env:DATABASE_URL" -f database/dwh\centralizedehr_dwh_postgresql.sql
 
 # 3. Generate demo OLTP data
 python scripts\generate_mock_oltp_data.py --encounters 100

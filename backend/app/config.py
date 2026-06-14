@@ -1,5 +1,21 @@
+from typing import Any
+
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+
+
+def _with_postgres_driver(url: str, driver: str) -> str:
+    prefixes = (
+        "postgresql+asyncpg://",
+        "postgresql+psycopg2://",
+        "postgresql://",
+        "postgres://",
+    )
+    for prefix in prefixes:
+        if url.startswith(prefix):
+            return f"postgresql+{driver}://{url.removeprefix(prefix)}"
+    return url
 
 
 class Settings(BaseSettings):
@@ -19,6 +35,27 @@ class Settings(BaseSettings):
     API_KEY_HEADER: str = "X-API-Key"
 
     CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_database_urls(cls, values: Any) -> Any:
+        if not isinstance(values, dict):
+            return values
+
+        database_url = values.get("DATABASE_URL")
+        database_url_sync = values.get("DATABASE_URL_SYNC")
+
+        if isinstance(database_url, str):
+            values["DATABASE_URL"] = _with_postgres_driver(database_url, "asyncpg")
+            if not database_url_sync:
+                values["DATABASE_URL_SYNC"] = _with_postgres_driver(database_url, "psycopg2")
+
+        if isinstance(database_url_sync, str):
+            values["DATABASE_URL_SYNC"] = _with_postgres_driver(database_url_sync, "psycopg2")
+            if not database_url:
+                values["DATABASE_URL"] = _with_postgres_driver(database_url_sync, "asyncpg")
+
+        return values
 
     class Config:
         env_file = ".env"

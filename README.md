@@ -41,10 +41,16 @@ CentralizedEHR/
 │   │   ├── App.jsx
 │   │   └── main.jsx
 │   └── package.json
-├── data-warehouse-sql-server/       # DWH scripts for PostgreSQL/SQL Server
-├── docs/                            # Phân tích nghiệp vụ, OLTP, DWH, luồng xử lý
-├── assets/                          # Hình minh họa use case/data flow
-├── scripts/                         # Notebook nạp dữ liệu danh mục
+├── database/
+│   └── dwh/                         # Script thiết kế Data Warehouse
+├── etl/                             # Pipeline ETL OLTP → DWH
+├── scripts/
+│   ├── generate_mock_oltp_data.py   # Sinh dữ liệu demo OLTP
+│   └── notebooks/                   # Notebook nạp danh mục
+├── data/                            # Dữ liệu tham chiếu (ICD-10, bệnh viện...)
+├── assets/
+│   └── images/                      # Hình minh họa use case/data flow
+├── docs/                            # Tài liệu nghiệp vụ và hướng dẫn vận hành
 ├── pyproject.toml
 └── README.md
 ```
@@ -230,7 +236,7 @@ Schema này tương thích PostgreSQL/Supabase, có enum, index, soft delete và
 
 ## Data Warehouse
 
-Thư mục `data-warehouse-sql-server/` chứa các script thiết kế DWH:
+Thư mục `database/dwh/` chứa các script thiết kế DWH:
 
 - `centralizedehr_dwh_postgresql.sql`: bản PostgreSQL.
 - `centralizedehr_dwh_sqlserver_local.sql`: bản SQL Server local.
@@ -251,13 +257,19 @@ Một số bảng phân tích tiêu biểu:
 
 ## Tài liệu nghiệp vụ
 
-Các tài liệu trong `docs/` mô tả chi tiết bài toán và thiết kế:
+Các tài liệu trong `docs/` được sắp xếp theo chủ đề:
 
-- `docs/MAIN_FLOW.md`: luồng tổng quan OLTP, DWH, BI/AI.
-- `docs/PART1_DETAIL.md`: phân tích use case và thiết kế OLTP.
-- `docs/PART2_DETAIL.md`: thiết kế data warehouse.
-- `docs/PART2_DATA_WAREHOUSE_REWRITTEN_CentralizedEHR.md`: bản viết lại chi tiết phần DWH.
-- `docs/CentralizedEHR_DWH_SoDoChiTiet.md`: sơ đồ/diễn giải chi tiết DWH.
+| Thư mục | Nội dung |
+| --- | --- |
+| `docs/01-overview/` | Luồng tổng quan OLTP, DWH, BI/AI |
+| `docs/02-backend/` | Phân tích use case và thiết kế OLTP |
+| `docs/03-frontend/` | Ghi chú frontend (tham chiếu README gốc) |
+| `docs/04-etl/` | Pipeline ETL và hướng dẫn sinh dữ liệu demo |
+| `docs/05-data-warehouse/` | Thiết kế data warehouse và sơ đồ chi tiết |
+| `docs/06-bi-powerbi/` | Dashboard Power BI, DAX measures, checklist |
+| `docs/99-archive/` | Bản nháp hoặc tài liệu lưu trữ |
+
+Xem mục lục đầy đủ tại `docs/README.md`.
 
 ## Luồng nghiệp vụ mẫu
 

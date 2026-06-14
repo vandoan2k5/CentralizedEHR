@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git"
+  short_description: "Safe Git workflows and conventional commits"
+  default_prompt: "Use  to inspect repository status and commit changes with conventional commit standards."

@@ -1,0 +1,70 @@
+-- CentralizedEHR Power BI measures for Supabase/PostgreSQL mart views.
+-- Assumes Power BI queries are renamed as documented in docs/06-bi-powerbi/SUPABASE_IMPLEMENTATION.md.
+-- Keep source columns in snake_case to copy these measures directly.
+
+-- KPI Overview
+Total Patients = MAX('KPI Overview'[total_patients])
+Total Hospitals = MAX('KPI Overview'[total_hospitals])
+Total Doctors = MAX('KPI Overview'[total_doctors])
+Total Encounters = MAX('KPI Overview'[total_encounters])
+Total Prescription Lines = MAX('KPI Overview'[total_prescription_lines])
+Total Lab Results = MAX('KPI Overview'[total_lab_results])
+Total Imaging Reports = MAX('KPI Overview'[total_imaging_reports])
+Total Appointments = MAX('KPI Overview'[total_appointments])
+Total Consents = MAX('KPI Overview'[total_consents])
+Last Refreshed At = MAX('KPI Overview'[refreshed_at])
+
+-- Encounter analytics
+Encounter Count = SUM('Encounter By Month Hospital'[total_encounters])
+Encounters With Lab = SUM('Encounter By Month Hospital'[encounters_with_lab])
+Encounters With Imaging = SUM('Encounter By Month Hospital'[encounters_with_imaging])
+Encounters With Prescription = SUM('Encounter By Month Hospital'[encounters_with_prescription])
+Lab Coverage % = DIVIDE([Encounters With Lab], [Encounter Count])
+Imaging Coverage % = DIVIDE([Encounters With Imaging], [Encounter Count])
+Prescription Coverage % = DIVIDE([Encounters With Prescription], [Encounter Count])
+
+Doctor Specialty Encounter Count = SUM('Encounter By Doctor Specialty'[total_encounters])
+
+-- Disease analytics
+Disease Encounter Count = SUM('Top Disease'[total_encounters])
+Disease Rank =
+RANKX(
+    ALL('Top Disease'[disease_name]),
+    [Disease Encounter Count],
+    ,
+    DESC
+)
+
+-- Prescription analytics
+Prescription Lines = SUM('Prescription By Month Drug'[prescription_lines])
+Total Drug Quantity = SUM('Prescription By Month Drug'[total_quantity])
+Average Duration Days = AVERAGE('Prescription By Month Drug'[avg_duration_days])
+
+-- Appointment analytics
+Appointment Count = SUM('Appointment Status'[total_appointments])
+Cancelled Appointments =
+CALCULATE(
+    [Appointment Count],
+    'Appointment Status'[appointment_status] = "CANCELLED"
+)
+Cancel Rate = DIVIDE([Cancelled Appointments], [Appointment Count])
+
+-- Consent analytics
+Consent Count = SUM('Consent Status'[total_consents])
+Average Consent Duration Days = AVERAGE('Consent Status'[avg_valid_duration_days])
+Active Consents =
+CALCULATE(
+    [Consent Count],
+    'Consent Status'[consent_status] = "ACTIVE"
+)
+Revoked Consents =
+CALCULATE(
+    [Consent Count],
+    'Consent Status'[consent_status] = "REVOKED"
+)
+
+-- HIS / MPI coverage
+Total Mappings = SUM('Patient Mapping By Hospital'[total_mappings])
+Total Mapped Patients = SUM('Patient Mapping By Hospital'[total_mapped_patients])
+Total Local Patient IDs = SUM('Patient Mapping By Hospital'[total_local_patient_ids])
+Mapping Density = DIVIDE([Total Mappings], [Total Mapped Patients])

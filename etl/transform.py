@@ -53,10 +53,12 @@ def transform_diseases(master_data: list[dict], encounters: list[dict]) -> list[
         data_type = normalize_upper(r.get("data_type"), default="")
         code = normalize_upper(r.get("code"), default="")
         if data_type == "ICD10" and code:
+            meta = r.get("metadata") or {}
+            extracted_group = safe_str(meta.get("group")) or "UNKNOWN"
             diseases[code] = {
                 "icd10_code": code,
                 "disease_name": safe_str(r.get("name")) or "UNKNOWN",
-                "disease_group": safe_str(r.get("group")) or safe_str(r.get("disease_group")) or "UNKNOWN",
+                "disease_group": extracted_group,
                 "description": safe_str(r.get("description")) or None,
             }
 

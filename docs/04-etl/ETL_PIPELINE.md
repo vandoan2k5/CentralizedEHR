@@ -33,7 +33,7 @@ database/dwh/centralizedehr_dwh_postgresql.sql
     PostgreSQL DWH schema: dwh dimensions, dwh facts, unknown rows, mart views.
 
 scripts/generate_mock_oltp_data.py
-    Seeds demo OLTP master data and transactional rows.
+    Seeds varied Vietnamese-accented demo OLTP master data and transactional rows.
 
 etl/extract.py
     Extracts rows from Supabase/PostgREST public tables.
@@ -112,20 +112,28 @@ Run the data generator from the repository root:
 python scripts\generate_mock_oltp_data.py
 ```
 
-By default it inserts 30 encounter rows and related lab result, imaging report, prescription, appointment, consent, and patient mapping rows.
+By default it creates or updates 30 mock patients, inserts 30 encounter rows, and creates related lab result, imaging report, prescription, appointment, consent, and patient mapping rows.
 
-To choose the number of encounters:
+To choose the number of patients and encounters:
 
 ```powershell
-python scripts\generate_mock_oltp_data.py --encounters 100
+python scripts\generate_mock_oltp_data.py --patients 80 --encounters 200
 ```
+
+To make the generated dataset reproducible for demos and tests, pass a seed:
+
+```powershell
+python scripts\generate_mock_oltp_data.py --patients 80 --encounters 200 --seed 2026
+```
+
+The generator uses disease scenarios instead of independent per-column random values, so diagnoses, symptoms, specialties, lab tests, imaging reports, prescriptions, appointments, and consents stay clinically plausible for demo use. Vietnamese-facing fields are generated with accents.
 
 The generator is idempotent for core master data:
 
 - `hospitals` are upserted by `code`.
 - `doctors` are upserted by `practicing_license`.
 - `patients` are upserted by `identity_number`.
-- `master_data` inserts ICD-10 and drug rows only when the active code does not already exist.
+- `master_data` updates active ICD-10, drug, and specialty rows by `data_type` + `code`, or inserts them when they do not exist.
 
 Transactional rows are appended on each run:
 
@@ -326,7 +334,7 @@ psql "$env:DATABASE_URL" -f backend\schema.sql
 psql "$env:DATABASE_URL" -f database/dwh\centralizedehr_dwh_postgresql.sql
 
 # 3. Generate demo OLTP data
-python scripts\generate_mock_oltp_data.py --encounters 100
+python scripts\generate_mock_oltp_data.py --patients 80 --encounters 200 --seed 2026
 
 # 4. Run ETL
 python -m etl.run_pipeline

@@ -1,4 +1,4 @@
-from etl.supabase_client import supabase
+from etl.db_client import get_conn
 
 TABLES = [
     ("public", "patients"),
@@ -28,9 +28,10 @@ TABLES = [
 
 def count_table(schema: str, table: str):
     try:
-        query = supabase.table(table) if schema == "public" else supabase.schema(schema).table(table)
-        response = query.select("*", count="exact").limit(1).execute()
-        return response.count
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(f'select count(*) from "{schema}"."{table}"')
+                return cur.fetchone()[0]
     except Exception as exc:
         return f"ERROR: {exc}"
 

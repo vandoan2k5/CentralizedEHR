@@ -13,11 +13,13 @@ frontend/
 │   ├── App.jsx
 │   └── main.jsx
 ├── index.html
-├── vite.config.js        # Proxy /api → backend :8000
+├── vite.config.js        # Proxy /api -> backend :8000
 └── package.json
 ```
 
 ## Chạy local
+
+Xem hướng dẫn chạy đầy đủ backend + frontend tại [RUN_WEB.md](./RUN_WEB.md).
 
 ```bash
 cd frontend

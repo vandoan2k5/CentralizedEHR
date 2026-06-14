@@ -85,23 +85,33 @@ def transform_drugs(master_data: list[dict], prescriptions: list[dict]) -> list[
     for r in master_data:
         data_type = normalize_upper(r.get("data_type"), default="")
         code = normalize_upper(r.get("code"), default="")
+        
         if data_type == "DRUG" and code:
+            # 1. Bốc cục dữ liệu jsonb từ cột metadata ra
+            meta = r.get("metadata") or {}
+            
+            # 2. Thực hiện bóc tách lấy giá trị của trường "group" bên trong
+            extracted_group = "UNKNOWN"
+            if isinstance(meta, dict):
+                extracted_group = safe_str(meta.get("group")) or "UNKNOWN"
+
             drugs[code] = {
                 "drug_code": code,
-                "drug_name": safe_str(r.get("name")) or "UNKNOWN",
-                "drug_group": safe_str(r.get("group")) or safe_str(r.get("drug_group")) or "UNKNOWN",
+                "drug_name": safe_str(r.get("name")) or f"Thuốc {code}", 
+                "drug_group": extracted_group, # <--- Giá trị "Tim mạch", "Tiêu hóa" sẽ nhảy vào đây
                 "description": safe_str(r.get("description")) or None,
-                "metadata": r.get("metadata"),
+                "metadata": meta,
             }
 
+    # Giữ nguyên logic quét đơn thuốc prescriptions và setdefault UNKNOWN ở phía dưới...
     for r in prescriptions:
         code = normalize_upper(r.get("drug_code"), default="")
         if code and code not in drugs:
             drugs[code] = {
                 "drug_code": code,
-                "drug_name": safe_str(r.get("drug_name")) or "UNKNOWN",
-                "drug_group": "UNKNOWN",
-                "description": None,
+                "drug_name": f"Thuốc {code}",
+                "drug_group": safe_str(r.get("drug_group")) or "UNKNOWN",
+                "description": "Bổ sung từ đơn thuốc",
                 "metadata": None,
             }
 

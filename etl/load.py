@@ -271,7 +271,7 @@ def load_fact_lab_result(rows: list[dict], lookups: dict[str, dict]):
 
 def load_fact_imaging_report(rows: list[dict], lookups: dict[str, dict]):
     prepared = [with_common_keys(r, lookups) for r in rows]
-
+    prepared = [r for r in prepared if r.get("patient_key", 0) != 0]
     manual_upsert("fact_imaging_report", prepared, "imaging_report_id_source")
 
 
@@ -291,13 +291,13 @@ def load_fact_prescription(rows: list[dict], lookups: dict[str, dict]):
 
 def load_fact_appointment(rows: list[dict], lookups: dict[str, dict]):
     prepared = [with_common_keys(r, lookups) for r in rows]
-
+    prepared = [r for r in prepared if r.get("patient_key", 0) != 0]
     manual_upsert("fact_appointment", prepared, "appointment_id_source")
 
 
 def load_fact_consent(rows: list[dict], lookups: dict[str, dict]):
     prepared = [with_common_keys(r, lookups) for r in rows]
-
+    prepared = [r for r in prepared if r.get("patient_key", 0) != 0]
     manual_upsert("fact_consent", prepared, "consent_id_source")
 
 
@@ -314,6 +314,8 @@ def load_fact_patient_mapping(rows: list[dict], lookups: dict[str, dict]):
         row["hospital_key"] = lookups["hospitals"].get(str(hospital_id), 0)
 
         prepared.append(row)
+
+    prepared = [r for r in prepared if r.get("patient_key", 0) != 0]
 
     if not prepared:
         print("Skip dwh.fact_patient_mapping: no rows")
